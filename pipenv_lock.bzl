@@ -4,44 +4,23 @@ def _pipenv_lock_impl(ctx):
     """Implementation of the pipenv_lock rule."""
 
     # Declare the output Pipfile.lock
-    pipfile_lock = ctx.actions.declare_file("Pipfile.lock")
-
-    # Create a minimal Pipfile
-    pipfile = ctx.actions.declare_file("Pipfile")
-    ctx.actions.write(
-        output = pipfile,
-        content = """[[source]]
-url = "https://pypi.org/simple"
-verify_ssl = true
-name = "pypi"
-
-[packages]
-
-[dev-packages]
-
-[requires]
-python_version = "3"
-""",
-    )
+    pipfile_lock = ctx.actions.declare_file("pipenv_env/Pipfile.lock")
 
     requirements_file = ctx.file.requirements
 
-    ctx.actions.run(
+    ctx.actions.run_shell(
         outputs = [pipfile_lock],
-        inputs = [requirements_file, pipfile],
-        tools = [ctx.attr._pipenv[DefaultInfo].files_to_run],
-        executable = ctx.executable._pipenv,
-        arguments = [
-            "install",
-            "-r",
-            requirements_file.path,
-        ],
-        env = {
-            "PIPENV_PIPFILE": pipfile.path,
-            "PIPENV_VENV_IN_PROJECT": "1",
-        },
-        mnemonic = "PipenvLock",
-        progress_message = "Generating Pipfile.lock from %s" % requirements_file.short_path,
+        inputs = [requirements_file],
+        tools = [ctx.executable._pipenv],
+        command = """
+exec_root=$(pwd)
+cd $(dirname {pipfile_lock})
+PIPENV_VENV_IN_PROJECT=1 $exec_root/{pipenv} --python 3.12 install -r $exec_root/{reqs}
+""".format(
+            pipfile_lock = pipfile_lock.path,
+            pipenv = ctx.executable._pipenv.path,
+            reqs = requirements_file.path,
+        ),
     )
 
     return [DefaultInfo(files = depset([pipfile_lock]))]
