@@ -1,0 +1,22 @@
+load("//:pipenv_lock.bzl", "pipenv_lock")
+load("@python//3.12:defs.bzl", "compile_pip_requirements")
+load("@rules_python//python:py_binary.bzl", "py_binary")
+
+compile_pip_requirements(
+    name = "requirements",
+    src = "requirements.in",
+    requirements_txt = "requirements_lock_3_12.txt",
+)
+
+py_binary(
+    name = "pipenv",
+    srcs = ["pipenv.py"],
+    deps = [
+        "@pypi//pipenv",
+    ]
+)
+
+pipenv_lock(
+    name = "pipfile_lock",
+    requirements = ":requirements_lock_3_12.txt",
+)

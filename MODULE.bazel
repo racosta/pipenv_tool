@@ -1,0 +1,29 @@
+"""Bazel repo using pipenv as a tool in a rule."""
+
+module(
+    name = "pipenv_tool",
+    version = "0.0.0"
+)
+
+bazel_dep(name = "rules_python", version = "1.8.3")
+
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python.toolchain(
+    configure_coverage_tool = True,
+    is_default = True,
+    python_version = "3.12",
+)
+use_repo(
+    python,
+    "python_3_12",
+    "pythons_hub",
+    python = "python_versions",
+)
+
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip.parse(
+    hub_name = "pypi",
+    python_version = "3.12",
+    requirements_lock = "//:requirements_lock_3_12.txt",
+)
+use_repo(pip, "pypi")
