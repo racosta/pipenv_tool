@@ -15,7 +15,7 @@ def _pipenv_lock_impl(ctx):
         command = """
 exec_root=$(pwd)
 cd $(dirname {pipfile_lock})
-PIPENV_VENV_IN_PROJECT=1 $exec_root/{pipenv} --python 3.12 install -r $exec_root/{reqs}
+PIPENV_VENV_IN_PROJECT=1 $exec_root/{pipenv} --python 3.11 install -r $exec_root/{reqs}
 """.format(
             pipfile_lock = pipfile_lock.path,
             pipenv = ctx.executable._pipenv.path,
